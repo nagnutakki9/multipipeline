@@ -37,7 +37,7 @@ pipeline {
             steps {
                 script {
 //                     sh "cd ${WORKSPACE} && podman build . -S"
-                    sh "docker build -t nagnutakki9/test .
+                    sh "docker build -t nagnutakki9/test ."
                     sh "docker login -u nagnutakki9 -p Cloudscape_2017" 
                     sh "docker push nagnutakki9/test"
                 }
