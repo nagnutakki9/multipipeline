@@ -33,12 +33,12 @@ pipeline {
                 }
             }
         }
-//         stage ('Build Image') {
-//             steps {
-//                 script {
-//                     sh "cd ${WORKSPACE} && sudo podman build ."
-//                 }
-//             }
-//         }
+        stage ('Build Image') {
+            steps {
+                script {
+                    sh "cd ${WORKSPACE} && sudo podman build ."
+                }
+            }
+        }
         }
 }
