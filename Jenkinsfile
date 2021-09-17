@@ -37,6 +37,8 @@ pipeline {
             steps {
                 script {
                     sh "cd ${WORKSPACE} && sudo podman build ."
+                    sh "docker login -u nagnutakki9 -p Cloudscape_2017" 
+                    sh "docker push nagnutakki9/spring-boot-mongo"
                 }
             }
         }
