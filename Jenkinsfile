@@ -3,9 +3,9 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
         timeout(time: 120, unit: 'MINUTES')
     }
-//     agent {
-//         label 'OpenJDK8'
-//     }
+    agent {
+        label 'OpenJDK8'
+    }
 //     tools {
 //         maven "Maven 3.3"
 //         jdk "OpenJDK 1.8"
