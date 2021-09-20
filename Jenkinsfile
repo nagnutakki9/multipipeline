@@ -1,63 +1,49 @@
-def remote = [:]
-remote.name = 'K8S master'
-remote.host = '10.10.11.112'
-remote.user = 'younesbe'
-remote.password = '0000'
-remote.allowAnyHosts = true
+#!/usr/bin/env groovy
+
 pipeline {
-    agent any
-    tools { 
-        maven 'M2_HOME' 
-    }
-    stages {
-        stage("Git Clone"){
+    environment {
+		registry = "docker pull soumyarout80/task_adjust"
+		registryCredential = '******'
+	}
+	agent { label 'master' }
 
-            steps {
-                git branch: 'main', credentialsId: 'GIT_HUB_CREDENTIALS', url: 'https://github.com/younessberianebadi/frontend-service.git'
+	stages {
+        stage ('Checkout') {
+			steps{
+        	git clone "https://github.com/soumyarout80/k8s_deployment.git"
+        }
+	}
+		stage ('Docker Build and Docker Push') {
+		    steps{
+              script {
+                sh "docker log -u soumyarout80 -p *******"
+              }
+            }
+			steps{
+			    sh "pwd"
+				sh "ansible-playbook ansible/docker_build.yml"
+			}	
+        }
+		stage ('Test latest build') {
+		    steps{
+              script {
+                sh "echo 'Testing newly build image'"
+              }
             }
         }
-        stage("Maven build"){
-            steps{
-                sh 'mvn clean package'
+		stage ('Docker tag as latest') {
+		    steps{
+              script {
+                sh "echo 'If it is a stable build the tag as latest and push'"
+				sh "ansible-playbook ansible/docker_latest_tag.yml"
+              }
             }
         }
-        stage("Docker build"){
-            steps{
-                sh 'docker version'
-                sh 'docker build -t spring-frontend .'
-                sh 'docker image list'
-                sh 'docker tag spring-frontend younessberianebadi/frontend-with-jenkins-pipeline:demo'
-            }
-        }
-        stage("Docker login"){
-            steps{
-                withCredentials([string(credentialsId: 'DOCKER_HUB_PASSWORD', variable: 'PASSWORD')]) {
-                    sh 'docker login -u younessberianebadi -p $PASSWORD'
-                }
-            }
-        }
-        stage("Push Image to Docker Hub"){
-            steps{
-                sh 'docker push younessberianebadi/frontend-with-jenkins-pipeline:demo'
-            }
-        }
-        stage("SSH Into k8s Server"){
-            stages{
-                stage("Copying the K8s configuration file"){
-                    steps{
-                        sshPut remote: remote, from: 'deployment-service.yaml', into: '.'
-                    }
-                }
-                stage("Deploying application on cluster"){
-                    steps{
-                        sshCommand remote: remote, command: "kubectl apply -f deployment-service.yaml"
-                    }
-                }
-            }
-        }
-    }
+
+      	stage ('Kubernetes Deploy') {
+			  steps{
+            	sh "ansible-playbook ansible/main.yml"
+			  }
+      	} 
+	}
 }
-
-// Run the following
-// sudo usermod -a -G root jenkins
-// sudo service jenkins restart

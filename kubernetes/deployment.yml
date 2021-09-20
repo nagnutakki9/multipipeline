@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adjust-api
+  namespace: adjust
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: adjust-api
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: adjust-api
+    spec:
+      containers:
+      - name: adjust-api
+        image: soumyarout80/task_adjust:latest
+        resources:
+          requests:
+            cpu: 10m
+            memory: 256Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
