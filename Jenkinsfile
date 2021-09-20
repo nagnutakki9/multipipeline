@@ -1,47 +1,63 @@
+def remote = [:]
+remote.name = 'K8S master'
+remote.host = '10.10.11.112'
+remote.user = 'younesbe'
+remote.password = '0000'
+remote.allowAnyHosts = true
 pipeline {
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 120, unit: 'MINUTES')
+    agent any
+    tools { 
+        maven 'M2_HOME' 
     }
-    agent {
-        label 'OpenJDK8'
-    }
-//     tools {
-//         maven "Maven 3.3"
-//         jdk "OpenJDK 1.8"
-//     }
-    // Environment variables
-    //environment {
-    //}
     stages {
-        stage ('Run Package') {
+        stage("Git Clone"){
+
             steps {
-                script {
-                    sh "mvn clean package -Dmaven.test.skip=true"
-                    //sh "mvn clean deploy -Dmaven.test.skip=true"
-                    //sh "mvn jetty:run"
+                git branch: 'main', credentialsId: 'GIT_HUB_CREDENTIALS', url: 'https://github.com/younessberianebadi/frontend-service.git'
+            }
+        }
+        stage("Maven build"){
+            steps{
+                sh 'mvn clean package'
+            }
+        }
+        stage("Docker build"){
+            steps{
+                sh 'docker version'
+                sh 'docker build -t spring-frontend .'
+                sh 'docker image list'
+                sh 'docker tag spring-frontend younessberianebadi/frontend-with-jenkins-pipeline:demo'
+            }
+        }
+        stage("Docker login"){
+            steps{
+                withCredentials([string(credentialsId: 'DOCKER_HUB_PASSWORD', variable: 'PASSWORD')]) {
+                    sh 'docker login -u younessberianebadi -p $PASSWORD'
+                }
+            }
+        }
+        stage("Push Image to Docker Hub"){
+            steps{
+                sh 'docker push younessberianebadi/frontend-with-jenkins-pipeline:demo'
+            }
+        }
+        stage("SSH Into k8s Server"){
+            stages{
+                stage("Copying the K8s configuration file"){
+                    steps{
+                        sshPut remote: remote, from: 'deployment-service.yaml', into: '.'
+                    }
+                }
+                stage("Deploying application on cluster"){
+                    steps{
+                        sshCommand remote: remote, command: "kubectl apply -f deployment-service.yaml"
                     }
                 }
             }
-        stage ('Run Tests') {
-            steps {
-                echo "Running test"
-                script {
-                    sh "mvn clean test"
-                    sh "mvn clean integration-test"
-                    sh " mvn clean verify"
-                }
-            }
         }
-        stage ('Build Image') {
-            steps {
-                script {
-//                     sh "cd ${WORKSPACE} && podman build . -S"
-                    sh "docker build -t nagnutakki9/test ."
-                    sh "docker login -u nagnutakki9 -p Cloudscape_2017" 
-                    sh "docker push nagnutakki9/test"
-                }
-            }
-        }
-        }
+    }
 }
+
+// Run the following
+// sudo usermod -a -G root jenkins
+// sudo service jenkins restart
