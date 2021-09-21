@@ -2,8 +2,8 @@
 
 pipeline {
     environment {
-		registry = "docker pull soumyarout80/task_adjust"
-		registryCredential = '******'
+		registry = "docker pull nagnutakki9/testing"
+		registryCredential = 'Cloudscape_2017'
 	}
 	agent { label 'master' }
 
