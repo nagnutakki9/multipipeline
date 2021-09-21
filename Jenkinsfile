@@ -13,7 +13,7 @@ pipeline {
         	git clone "https://github.com/nagnutakki9/multipipeline.git"
         }
 	}
-		stage ('Docker Build and Docker Push') {
+		stage ('Docker Push') {
 		    steps{
               script {
                 sh "docker log -u nagnutakki9 -p Cloudscape_2017"
