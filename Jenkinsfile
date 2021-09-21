@@ -10,13 +10,13 @@ pipeline {
 	stages {
         stage ('Checkout') {
 			steps{
-        	git clone "https://github.com/soumyarout80/k8s_deployment.git"
+        	git clone "https://github.com/nagnutakki9/multipipeline.git"
         }
 	}
 		stage ('Docker Build and Docker Push') {
 		    steps{
               script {
-                sh "docker log -u soumyarout80 -p *******"
+                sh "docker log -u nagnutakki9 -p Cloudscape_2017"
               }
             }
 			steps{
